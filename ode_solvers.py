@@ -63,6 +63,49 @@ def adams_bashforth_2(dydt, y0, t):
     return y
 
 
+def adams_moulton_2(dydt, y0, t):
+    y = np.zeros(len(t))
+    y[0] = y0
+    dt = t[1] - t[0]
+    y[1] = y[0] + dt * dydt(y[0])  # Use Euler's method for first step
+    for i in range(2, len(t)):
+        # Estimate with 2-step Adams-Bashforth method
+        y_ab2 = y[i-1] + dt / 2 * (3 * dydt(y[i-1]) - dydt(y[i-2]))
+        # Correct with 2-step Adams-Moulton method
+        y[i] = y[i-1] + dt / 2 * (dydt(y[i-1]) + dydt(y_ab2))
+    return y
+
+
+def gears_1(f, y0, t):
+    y = np.zeros(len(t))
+    y[0] = y0
+    dt = t[1] - t[0]
+
+    # Define the residual function for the Newton-Raphson method
+    def residual(y_new, y_old):
+        return y_new - y_old - dt * f(y_new)
+
+    # Define the Jacobian of the residual function for the Newton-Raphson method
+    def jacobian(y_new):
+        eps = 1e-8  # Small perturbation for numerical differentiation
+        return 1 - dt * (f(y_new + eps) - f(y_new)) / eps
+
+    # Perform the integration
+    for i in range(1, len(t)):
+        # Initial guess for the Newton-Raphson method
+        y_guess = y[i-1]
+
+        # Newton-Raphson method
+        for j in range(100):
+            dy = residual(y_guess, y[i-1]) / jacobian(y_guess)
+            y_guess -= dy
+            if abs(dy) < 1e-10:
+                break
+
+        y[i] = y_guess
+
+    return y
+
 
 # Define the differential equation
 def dydt(y):
@@ -108,12 +151,11 @@ plt.legend()
 plt.show()
 
 
-import numpy as np
-import matplotlib.pyplot as plt
-
 # Define the differential equation
+
 def dydt(y):
     return y
+
 
 # Set initial condition and time step
 y0 = 1
@@ -125,5 +167,44 @@ y_ab2 = adams_bashforth_2(dydt, y0, t)
 # Plot results
 plt.plot(t, y_ab2, label='Adams-Bashforth 2')
 plt.plot(t, np.exp(t), label='Analytical')
+plt.legend()
+plt.show()
+
+
+# Define the differential equation
+
+def dydt(y):
+    return y
+
+
+# Set initial condition and time step
+y0 = 1
+t = np.arange(0, 2, 0.01)
+
+# 2-step Adams-Moulton method
+y_am2 = adams_moulton_2(dydt, y0, t)
+
+# Plot results
+plt.plot(t, y_am2, label='Adams-Moulton 2')
+plt.plot(t, np.exp(t), label='Analytical')
+plt.legend()
+plt.show()
+
+
+# Define the differential equation
+
+def dydt(y):
+    return -20 * y  # A stiff differential equation
+
+
+# Set initial condition and time step
+y0 = 1
+t = np.arange(0, 2, 0.01)
+
+# 1st order Gear's method
+y_g1 = gears_1(dydt, y0, t)
+
+# Plot results
+plt.plot(t, y_g1, label='Gear 1')
 plt.legend()
 plt.show()
