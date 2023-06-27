@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+import scipy.stats as stats
 import numpy as np
 
 
@@ -58,3 +60,70 @@ random_numbers, n_trials = random_variate(
 
 # Let's print the first 10 numbers to see what they look like
 print(random_numbers[:10])
+
+
+def inverse_transform_method(lmbda=1, size=1):
+    uniform_samples = np.random.uniform(size=size)
+    exponential_samples = -np.log(1 - uniform_samples) / lmbda
+    return exponential_samples
+
+
+def acceptance_rejection_method(size=1):
+    samples = []
+    while len(samples) < size:
+        x = np.random.uniform(-4, 4)  # Propose from a uniform distribution
+        u = np.random.uniform(0, 0.4)  # Uniform vertical proposal
+        if u <= stats.norm.pdf(x):  # Acceptance criterion
+            samples.append(x)
+    return np.array(samples)
+
+
+def box_muller_transform(size=1):
+    u1 = np.random.uniform(size=size)
+    u2 = np.random.uniform(size=size)
+    R = np.sqrt(-2 * np.log(u1))
+    theta = 2 * np.pi * u2
+    z1 = R * np.cos(theta)
+    z2 = R * np.sin(theta)
+    return z1, z2  # Both are standard normal variables
+
+
+def marsaglia_polar_method(size=1):
+    z1 = []
+    z2 = []
+    while len(z1) < size:
+        u = np.random.uniform(-1, 1)
+        v = np.random.uniform(-1, 1)
+        s = u * u + v * v
+        if 0 < s <= 1:
+            z1.append(u * np.sqrt(-2 * np.log(s) / s))
+            z2.append(v * np.sqrt(-2 * np.log(s) / s))
+    return np.array(z1), np.array(z2)  # Both are standard normal variables
+
+
+def box_muller_transform(size=1):
+    u1 = np.random.uniform(size=size)
+    u2 = np.random.uniform(size=size)
+    R = np.sqrt(-2 * np.log(u1))
+    theta = 2 * np.pi * u2
+    z1 = R * np.cos(theta)
+    z2 = R * np.sin(theta)
+    return z1, z2  # Both are standard normal variables
+
+
+# Generate 10000 random variables
+z1, z2 = box_muller_transform(size=10000)
+
+# Plot histogram for z1
+plt.hist(z1, bins=30, density=True, alpha=0.6, color='g')
+plt.title('Histogram of Generated Random Variables (z1)')
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.show()
+
+# Plot histogram for z2
+plt.hist(z2, bins=30, density=True, alpha=0.6, color='g')
+plt.title('Histogram of Generated Random Variables (z2)')
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.show()
