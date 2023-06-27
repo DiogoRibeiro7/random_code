@@ -36,7 +36,7 @@ def outlier_detection_importance_sampling(data: np.ndarray, threshold: float, ta
 
     # Define the indicator function for outliers
     def outlier_indicator(x):
-        return 1 if x > threshold else 0
+        return np.where(x > threshold, 1, 0)
 
     # Draw samples from the proposal distribution
     samples = np.array([proposal_sampler() for _ in range(N)])
