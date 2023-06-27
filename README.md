@@ -22,3 +22,7 @@ Quasi-Monte Carlo methods are a group of techniques used in numerical integratio
 Using Quasi-Monte Carlo methods for outlier detection is not very typical, because the method isn't geared towards finding rare events, but more towards achieving a more evenly distributed sampling across the space. However, it's possible to use it for sampling the data space and then apply a function to detect the outliers.
 
 Here's a basic example of how you might use it. We generate a Sobol sequence of data, apply a function to detect outliers, and then count the proportion of outliers. For the outlier detection, we will simply consider values above a certain threshold as outliers, but in practice you might use a more sophisticated method
+
+# Multilevel Monte Carlo Methods
+
+The Multilevel Monte Carlo (MLMC) method is a variance reduction technique for Monte Carlo estimations. It works by approximating the quantity of interest at multiple levels of accuracy and then combining these approximations in a way that minimizes the overall variance of the estimate. The idea is to do most of the work at lower levels (where the approximation is cheaper but less accurate), and then correct these approximations with more expensive but more accurate computations at higher levels.
