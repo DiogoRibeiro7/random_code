@@ -102,7 +102,7 @@ def outlier_detection_adaptive_monte_carlo(data, threshold, N):
         weight = target.pdf(sample) / proposal.pdf(sample)
 
         # Check if the sample is an outlier based on the threshold
-        if sample > threshold:
+        if any(data > sample + threshold) or any(data < sample - threshold):
             # Sample is considered an outlier
             # Get the index of the first occurrence
             outlier_indices.append(np.argmax(data > sample))
