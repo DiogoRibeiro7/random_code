@@ -12,6 +12,13 @@ We then define the target and proposal distributions based on the data and use t
 
 Please note that the proposal distribution is chosen to be wider than the target distribution to improve the chances of sampling the rare outliers, and the number of samples N is set to a large number (10,000) to get a reliable estimate. The choice of the threshold for outlier detection is often problem-specific and may require some experimentation.
 
+
+# Antithetic Variates
+
+Antithetic Variates is a variance reduction technique used in Monte Carlo simulations. It is based on the idea of exploiting negative correlation between random variables to decrease the variance of the estimate.
+
+This technique works by generating pairs of random variables where the second random variable of each pair is the 'antithetic' or opposite of the first. The mean of each pair is then used in the estimation.
+
 # Control Variates
 Control variates is a method where we use the known expected values of certain variables to help estimate the expected value of other variables. The control variable should be one that is correlated with the function of interest and has a known expected value [5]. The basic idea is to reduce the variance by subtracting the control variate from the function of interest and adding back its known expected value.
 
