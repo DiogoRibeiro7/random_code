@@ -26,3 +26,9 @@ Here's a basic example of how you might use it. We generate a Sobol sequence of 
 # Multilevel Monte Carlo Methods
 
 The Multilevel Monte Carlo (MLMC) method is a variance reduction technique for Monte Carlo estimations. It works by approximating the quantity of interest at multiple levels of accuracy and then combining these approximations in a way that minimizes the overall variance of the estimate. The idea is to do most of the work at lower levels (where the approximation is cheaper but less accurate), and then correct these approximations with more expensive but more accurate computations at higher levels.
+
+## Multilevel Monte Carlo Methods for outliers
+
+Sure, we can perform a multilevel Monte Carlo simulation to estimate the parameters of a dataset, then use these parameters to create a model for the data, and finally flag anything that falls outside a particular range as an outlier.
+
+However, please note that the actual implementation of MLMC for outlier detection could be highly dependent on your specific problem and the nature of the data.
