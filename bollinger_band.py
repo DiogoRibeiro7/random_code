@@ -1,112 +1,79 @@
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def calculate_bollinger_bands(data, window_size, num_std):
-    """
-    Calculate Bollinger Bands for a given data series.
+def calculate_bollinger_bands(prices, window=5):
+    # Convert prices to a pandas Series
+    prices_series = pd.Series(prices)
 
-    Args:
-        data (numpy.ndarray or pandas.Series): The time series data.
-        window_size (int): The size of the moving window for calculating the rolling mean and standard deviation.
-        num_std (float): The number of standard deviations to use for the upper and lower bands.
+    # Calculate the moving average
+    rolling_mean = prices_series.rolling(window).mean()
 
-    Returns:
-        pandas.DataFrame: A DataFrame containing the original data, rolling mean, upper band, and lower band.
-    """
-    if not isinstance(data, (np.ndarray, pd.Series)):
-        raise ValueError("Data must be a numpy array or pandas Series.")
+    # Calculate the standard deviation
+    rolling_std = prices_series.rolling(window).std()
 
-    # Convert data to numeric type
-    data = pd.to_numeric(data, errors="coerce")
+    # Calculate the upper and lower Bollinger Bands
+    upper_band = rolling_mean + (2 * rolling_std)
+    lower_band = rolling_mean - (2 * rolling_std)
 
-    rolling_mean = data.rolling(window=window_size).mean()
-    rolling_std = data.rolling(window=window_size).std()
+    return prices_series, rolling_mean, upper_band, lower_band
 
-    upper_band = rolling_mean + (num_std * rolling_std)
-    lower_band = rolling_mean - (num_std * rolling_std)
+def plot_bollinger_bands(prices, window=5):
+    prices_series, rolling_mean, upper_band, lower_band = calculate_bollinger_bands(prices, window)
 
-    bollinger_bands = pd.DataFrame({'Data': data, 'Rolling Mean': rolling_mean,
-                                    'Upper Band': upper_band, 'Lower Band': lower_band})
-
-    return bollinger_bands
-
-# Example usage
-# Assuming heartbeats per minute data is stored in a pandas Series called 'heartbeats'
-heartbeats = pd.Series([...])  # Replace [...] with your actual data
-
-window_size = 20  # Size of the moving window for calculating the rolling mean and standard deviation
-num_std = 2  # Number of standard deviations to use for the upper and lower bands
-
-bollinger_bands = calculate_bollinger_bands(heartbeats, window_size, num_std)
-
-# Plotting the data and Bollinger Bands
-plt.figure(figsize=(10, 6))
-plt.plot(bollinger_bands.index, bollinger_bands['Data'], label='Heartbeats per Minute')
-plt.plot(bollinger_bands.index, bollinger_bands['Rolling Mean'], label='Rolling Mean')
-plt.plot(bollinger_bands.index, bollinger_bands['Upper Band'], label='Upper Band')
-plt.plot(bollinger_bands.index, bollinger_bands['Lower Band'], label='Lower Band')
-plt.legend(loc='best')
-plt.xlabel('Time')
-plt.ylabel('Heartbeats per Minute')
-plt.title('Bollinger Bands')
-plt.grid(True)
-plt.show()
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-def plot_box_plots(data, window_size):
-    """
-    Plot box plots for each window of data.
-
-    Args:
-        data (numpy.ndarray or list): The heartbeats per minute data.
-        window_size (int): The size of the window for each box plot.
-
-    Returns:
-        None
-    """
-    if not isinstance(data, (np.ndarray, list)):
-        raise ValueError("Data must be a numpy array or list.")
-
-    num_windows = len(data) // window_size  # Number of windows to create
-
-    # Create an array of x-axis values representing time
-    time = np.arange(len(data))
-
-    # Create subplots for box plots
-    fig, ax = plt.subplots(num_windows, figsize=(10, 6))
-
-    # Generate box plots for each window
-    for i in range(num_windows):
-        start = i * window_size  # Start index of the window
-        end = start + window_size  # End index of the window
-        window_data = data[start:end]  # Data within the window
-        window_time = time[start:end]  # Time values for the window
-
-        # Plot box plot for the window
-        ax[i].boxplot(window_data)
-
-        # Customize the plot for each window
-        ax[i].set_xlabel('Time')
-        ax[i].set_ylabel('Heartbeats per Minute')
-        ax[i].set_xticks(np.arange(0, len(window_time), 10))  # Set x-axis tick locations
-        ax[i].set_xticklabels(window_time[::10])  # Set x-axis tick labels for every 10th time point
-
-    # Set the overall title for the plot
-    fig.suptitle('Heart BPM Box Plots by Window')
-
-    # Adjust layout spacing between subplots
-    plt.tight_layout()
-
-    # Show the plot
+    # Plot the Bollinger Bands
+    plt.figure(figsize=(10, 6))
+    plt.plot(prices_series, label='Price')
+    plt.plot(rolling_mean, label='Moving Average', linestyle='--')
+    plt.plot(upper_band, label='Upper Bollinger Band')
+    plt.plot(lower_band, label='Lower Bollinger Band')
+    plt.title('Bollinger Bands')
+    plt.xlabel('Period')
+    plt.ylabel('Price')
+    plt.legend()
+    plt.grid(True)
     plt.show()
 
-# Example usage
-# Assuming heartbeats per minute data is stored in a numpy array called 'heartbeats'
-heartbeats = np.random.randint(low=60, high=100, size=1000)  # Replace with your actual heartbeats per minute data
+prices = [85.05, 84.92, 85.57, 85.97, 86.23, 87.17, 87.77, 87.29, 86.74, 87.1,
+          87.67, 88.36, 88.25, 88.63, 89.37, 89.79, 89.31, 88.58, 89.53, 89.66]
 
-window_size = 50  # Size of the window for each box plot
+plot_bollinger_bands(prices)
 
-plot_box_plots(heartbeats, window_size)
+
+import pandas as pd
+import mplfinance as mpf
+
+def calculate_bollinger_bands(df, window=5):
+    # Calculate the moving average
+    df['MA'] = df['Close'].rolling(window).mean()
+
+    # Calculate the standard deviation
+    df['Std'] = df['Close'].rolling(window).std()
+
+    # Calculate the upper and lower Bollinger Bands
+    df['Upper'] = df['MA'] + (2 * df['Std'])
+    df['Lower'] = df['MA'] - (2 * df['Std'])
+
+    return df
+
+def plot_candlestick_with_bollinger(df, window=5):
+    df = calculate_bollinger_bands(df, window)
+
+    # Ensure index is of type DatetimeIndex
+    df.index = pd.to_datetime(df.index)
+
+    # Plot the candlestick chart with Bollinger Bands
+    mpf.plot(df, type='candle', style='charles', title='Candlestick Chart with Bollinger Bands',
+             ylabel='Price', addplot=[mpf.make_addplot(df['Upper']), mpf.make_addplot(df['Lower'])])
+
+# Example input data with "Open", "High", "Low", and "Close" columns
+data = {'Date': ['2022-01-01', '2022-01-02', '2022-01-03', '2022-01-04', '2022-01-05'],
+        'Open': [85.10, 84.90, 85.50, 85.80, 86.20],
+        'High': [85.50, 85.00, 86.00, 86.20, 86.50],
+        'Low': [84.80, 84.50, 85.00, 85.70, 85.80],
+        'Close': [85.05, 84.92, 85.57, 85.97, 86.23]}
+
+# Convert input data to a DataFrame
+df = pd.DataFrame(data)
+df.set_index('Date', inplace=True)
+
+plot_candlestick_with_bollinger(df)
