@@ -34,7 +34,7 @@ def find_inflexion_points(y_vals: np.array, x_vals: np.array, smoothing_sigma=2)
 
     return inflexion_points
 
-def plot_function_and_inflexion_points(y_vals, x_vals, inflexion_points):
+def plot_function_and_inflexion_points(y_vals: np.array, x_vals: np.array, inflexion_points: list):
     """
     Function to plot the function and its inflection points.
 
@@ -59,7 +59,7 @@ def plot_function_and_inflexion_points(y_vals, x_vals, inflexion_points):
         print(f"An error occurred while plotting: {e}")
         
         
-def calculate_sigma(y_vals):
+def calculate_sigma(y_vals: np.array) -> float:
     """
     Function to calculate sigma value for Gaussian smoothing based on the data.
 
@@ -89,6 +89,8 @@ x_vals = np.linspace(-10, 10, 1000)
 y_vals = (x_vals**3 - 3*x_vals**2 + 2) + np.random.normal(0, 10, len(x_vals))
 
 smoothing_sigma = calculate_sigma(y_vals)
+
+print(smoothing_sigma)
 
 inflexion_points = find_inflexion_points(y_vals, x_vals, smoothing_sigma)
 plot_function_and_inflexion_points(y_vals, x_vals, inflexion_points)
