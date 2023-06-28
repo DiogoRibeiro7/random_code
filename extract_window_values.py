@@ -32,28 +32,21 @@ def plot_candlestick(extracted_data):
     # Prepare the data for candlestick plot
     candlestick_data = zip(dates, extracted_data['Open'], extracted_data['Close'], extracted_data['Low'], extracted_data['High'])
 
-    # Plot the candlestick chart with volume
+    # Plot the candlestick chart
     fig, ax = plt.subplots(figsize=(10, 6))
-    plt.title('Candlestick Chart with Volume')
+    plt.title('Candlestick Chart')
 
-    # Plot candlesticks
     for date, first, last, lowest, highest in candlestick_data:
         ax.plot([date, date], [lowest, highest], color='black')
         ax.plot([date, date], [first, last], color='red' if first > last else 'green')
 
-    # Add volume bars
-    volume = extracted_data['Volume']
-    volume_scale = max(volume) / 5  # Scale factor for volume bars
-    for i, date in enumerate(dates):
-        ax.bar(date, volume[i], color='gray', width=0.6, alpha=0.5)
-    
     # Format x-axis as dates
     ax.xaxis_date()
     ax.autoscale_view()
 
     # Set labels and grid
     ax.set_xlabel('Date')
-    ax.set_ylabel('Price / Volume')
+    ax.set_ylabel('Price')
     ax.grid(True)
 
     plt.show()
