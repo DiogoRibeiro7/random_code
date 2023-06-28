@@ -59,6 +59,29 @@ def plot_function_and_inflexion_points(y_vals, x_vals, inflexion_points):
         print(f"An error occurred while plotting: {e}")
         
         
+def calculate_sigma(y_vals):
+    """
+    Function to calculate sigma value for Gaussian smoothing based on the data.
+
+    Args:
+        y_vals (numpy array): y-values of the data points.
+
+    Returns:
+        float: Calculated sigma value.
+    """
+    if not isinstance(y_vals, np.ndarray):
+        raise ValueError("The input should be a numpy array")
+
+    # Calculate differences between consecutive points
+    differences = np.diff(y_vals)
+
+    # Calculate standard deviation of differences
+    std_dev = np.std(differences)
+
+    # Use the standard deviation as our sigma value
+    sigma = std_dev
+
+    return sigma
 
 
 # Example usage with some noise
