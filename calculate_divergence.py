@@ -176,8 +176,6 @@ density_ratios = model.predict(X_new)
 print("Density Ratios:", density_ratios)
 
 
-import numpy as np
-
 def kliep_learning(X, X_ref, kernel_func, num_iterations=100):
     """
     Performs KLIEP learning to estimate the density ratio using the KLIEP algorithm.
@@ -202,7 +200,8 @@ def kliep_learning(X, X_ref, kernel_func, num_iterations=100):
         print("Density Ratios:", density_ratios)
     """
     if X.shape[1] != X_ref.shape[1]:
-        raise ValueError("Input datasets must have the same number of features")
+        raise ValueError(
+            "Input datasets must have the same number of features")
 
     n = X.shape[0]
     m = X_ref.shape[0]
@@ -231,15 +230,16 @@ def kliep_learning(X, X_ref, kernel_func, num_iterations=100):
 
     return density_ratios
 
+
 # Example usage
 X = np.random.rand(100, 2)
 X_ref = np.random.rand(100, 2)
-kernel_func = lambda x, y: np.exp(-np.sum((x - y) ** 2) / (2 * 1.0 ** 2))
+def kernel_func(x, y): return np.exp(-np.sum((x - y) ** 2) / (2 * 1.0 ** 2))
+
+
 density_ratios = kliep_learning(X, X_ref, kernel_func)
 print("Density Ratios:", density_ratios)
 
-
-import numpy as np
 
 class KLIEPChangePointDetector:
     def __init__(self, kernel_bandwidth=1.0):
@@ -327,8 +327,90 @@ class KLIEPChangePointDetector:
         kl_divergence = np.sum(normalized_ratios * np.log(normalized_ratios))
         return kl_divergence
 
+
 # Example usage
-data = np.concatenate([np.random.normal(0, 1, 100), np.random.normal(2, 1, 100)])
+data = np.concatenate([np.random.normal(0, 1, 100),
+                      np.random.normal(2, 1, 100)])
 detector = KLIEPChangePointDetector(kernel_bandwidth=0.5)
 change_point = detector.detect_change_point(data)
 print("Change Point:", change_point)
+
+
+class uLSIF:
+    def __init__(self, kernel_bandwidth=1.0, regularization=0.1, num_iterations=100):
+        self.kernel_bandwidth = kernel_bandwidth
+        self.regularization = regularization
+        self.num_iterations = num_iterations
+        self.weights = None
+
+    def fit(self, X, Y):
+        """
+        Fits the uLSIF model to estimate the density ratio.
+
+        Args:
+            X (np.ndarray): The numerator dataset.
+            Y (np.ndarray): The denominator dataset.
+        """
+        K_xx = self._compute_kernel_matrix(X, X)
+        K_yy = self._compute_kernel_matrix(Y, Y)
+        K_xy = self._compute_kernel_matrix(X, Y)
+
+        n = X.shape[0]
+        m = Y.shape[0]
+
+        # Initialize importance weights
+        w = np.ones(n)
+
+        for _ in range(self.num_iterations):
+            K_xw = np.dot(K_xx, w)
+            A = np.dot(K_xy.T, K_xw)
+            B = np.dot(K_xx.T, K_xw) + self.regularization * np.eye(n)
+            w_new = np.linalg.solve(B, A)
+            w = w_new / np.sum(w_new)
+
+        self.weights = w
+
+    def predict(self, Y):
+        """
+        Predicts the density ratio for new samples.
+
+        Args:
+            Y (np.ndarray): The input dataset.
+
+        Returns:
+            np.ndarray: The density ratios for the input samples.
+        """
+        K_yx = self._compute_kernel_matrix(Y, X)
+        density_ratios = (1 / X.shape[0]) * np.dot(K_yx, self.weights)
+        return density_ratios
+
+    def _compute_kernel_matrix(self, X1, X2):
+        """
+        Computes the Gaussian kernel matrix.
+
+        Args:
+            X1 (np.ndarray): The first dataset.
+            X2 (np.ndarray): The second dataset.
+
+        Returns:
+            np.ndarray: The kernel matrix.
+        """
+        pairwise_distances = np.sum((X1[:, np.newaxis] - X2) ** 2, axis=-1)
+        kernel_matrix = np.exp(-pairwise_distances /
+                               (2 * self.kernel_bandwidth ** 2))
+        return kernel_matrix
+
+
+# Example usage
+X = np.random.rand(100, 2)  # Numerator dataset
+Y = np.random.rand(100, 2)  # Denominator dataset
+
+# Create and fit the uLSIF model
+model = uLSIF(kernel_bandwidth=0.5, regularization=0.1, num_iterations=100)
+model.fit(X, Y)
+
+# Predict density ratios for new samples
+Y_new = np.random.rand(50, 2)
+density_ratios = model.predict(Y_new)
+
+print("Density Ratios:", density_ratios)
