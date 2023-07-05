@@ -174,3 +174,66 @@ X_new = np.random.rand(50, 2)
 density_ratios = model.predict(X_new)
 
 print("Density Ratios:", density_ratios)
+
+
+import numpy as np
+
+def kliep_learning(X, X_ref, kernel_func, num_iterations=100):
+    """
+    Performs KLIEP learning to estimate the density ratio using the KLIEP algorithm.
+
+    Args:
+        X (np.ndarray): The training dataset.
+        X_ref (np.ndarray): The reference dataset.
+        kernel_func (callable): Kernel function that measures the similarity between samples.
+        num_iterations (int, optional): Number of iterations for the KLIEP algorithm. Defaults to 100.
+
+    Returns:
+        np.ndarray: The density ratios for the training dataset.
+
+    Raises:
+        ValueError: If the input datasets have incompatible shapes.
+
+    Example:
+        X = np.random.rand(100, 2)
+        X_ref = np.random.rand(100, 2)
+        kernel_func = lambda x, y: np.exp(-np.sum((x - y) ** 2) / (2 * 1.0 ** 2))
+        density_ratios = kliep_learning(X, X_ref, kernel_func)
+        print("Density Ratios:", density_ratios)
+    """
+    if X.shape[1] != X_ref.shape[1]:
+        raise ValueError("Input datasets must have the same number of features")
+
+    n = X.shape[0]
+    m = X_ref.shape[0]
+
+    # Compute the kernel matrix
+    K = np.zeros((n, m))
+    for i in range(n):
+        for j in range(m):
+            K[i, j] = kernel_func(X[i], X_ref[j])
+
+    # Initialize the weights uniformly
+    weights = np.ones(n) / n
+
+    for _ in range(num_iterations):
+        # Compute the source density estimate
+        p_hat = np.dot(K, weights) / np.sum(weights)
+
+        # Compute the importance weights
+        importance_weights = np.sqrt(p_hat) / weights
+
+        # Update the weights using importance weighting
+        weights = importance_weights / np.sum(importance_weights)
+
+    # Compute the density ratios for the training dataset
+    density_ratios = np.sum(weights[:, np.newaxis] * K, axis=1)
+
+    return density_ratios
+
+# Example usage
+X = np.random.rand(100, 2)
+X_ref = np.random.rand(100, 2)
+kernel_func = lambda x, y: np.exp(-np.sum((x - y) ** 2) / (2 * 1.0 ** 2))
+density_ratios = kliep_learning(X, X_ref, kernel_func)
+print("Density Ratios:", density_ratios)
