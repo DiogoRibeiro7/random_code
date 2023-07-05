@@ -237,3 +237,98 @@ X_ref = np.random.rand(100, 2)
 kernel_func = lambda x, y: np.exp(-np.sum((x - y) ** 2) / (2 * 1.0 ** 2))
 density_ratios = kliep_learning(X, X_ref, kernel_func)
 print("Density Ratios:", density_ratios)
+
+
+import numpy as np
+
+class KLIEPChangePointDetector:
+    def __init__(self, kernel_bandwidth=1.0):
+        self.kernel_bandwidth = kernel_bandwidth
+
+    def detect_change_point(self, data):
+        """
+        Detects the change point in the given data using KLIEP.
+
+        Args:
+            data (np.ndarray): The input data.
+
+        Returns:
+            int: The index of the detected change point.
+
+        Raises:
+            ValueError: If the input data is empty or has incompatible shape.
+
+        Example:
+            data = np.random.rand(200)
+            detector = KLIEPChangePointDetector()
+            change_point = detector.detect_change_point(data)
+            print("Change Point:", change_point)
+        """
+        if len(data) == 0:
+            raise ValueError("Input data is empty")
+
+        n = len(data)
+        best_score = -np.inf
+        change_point = None
+
+        for i in range(1, n):
+            X1 = data[:i]
+            X2 = data[i:]
+
+            # Compute KLIEP density ratios
+            density_ratios = self._kliep_density_ratios(X1, X2)
+
+            # Compute the score using KL divergence
+            score = self._kl_divergence(density_ratios)
+
+            if score > best_score:
+                best_score = score
+                change_point = i
+
+        return change_point
+
+    def _kliep_density_ratios(self, X1, X2):
+        """
+        Computes the KLIEP density ratios between two segments of data.
+
+        Args:
+            X1 (np.ndarray): The first segment of data.
+            X2 (np.ndarray): The second segment of data.
+
+        Returns:
+            np.ndarray: The KLIEP density ratios.
+
+        Raises:
+            ValueError: If the input data has incompatible shape.
+        """
+        if X1.shape[0] == 0 or X2.shape[0] == 0:
+            raise ValueError("Input data is empty")
+
+        # Create and fit KLIEP density ratio model
+        model = DensityRatioModel(kernel_bandwidth=self.kernel_bandwidth)
+        model.fit(X1, X2)
+
+        # Predict density ratios for X2 using the model
+        density_ratios = model.predict(X2)
+
+        return density_ratios
+
+    def _kl_divergence(self, density_ratios):
+        """
+        Computes the KL divergence from the uniform distribution to the density ratios.
+
+        Args:
+            density_ratios (np.ndarray): The density ratios.
+
+        Returns:
+            float: The KL divergence.
+        """
+        normalized_ratios = density_ratios / np.sum(density_ratios)
+        kl_divergence = np.sum(normalized_ratios * np.log(normalized_ratios))
+        return kl_divergence
+
+# Example usage
+data = np.concatenate([np.random.normal(0, 1, 100), np.random.normal(2, 1, 100)])
+detector = KLIEPChangePointDetector(kernel_bandwidth=0.5)
+change_point = detector.detect_change_point(data)
+print("Change Point:", change_point)
