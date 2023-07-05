@@ -1,3 +1,4 @@
+from scipy.stats import norm
 import numpy as np
 
 
@@ -414,3 +415,165 @@ Y_new = np.random.rand(50, 2)
 density_ratios = model.predict(Y_new)
 
 print("Density Ratios:", density_ratios)
+
+
+class RuLSIF:
+    def __init__(self, kernel_bandwidth=1.0, regularization=0.1, num_iterations=100, reference_density=None):
+        self.kernel_bandwidth = kernel_bandwidth
+        self.regularization = regularization
+        self.num_iterations = num_iterations
+        self.weights = None
+        self.reference_density = reference_density
+
+    def fit(self, X, Y):
+        """
+        Fits the RuLSIF model to estimate the relative density ratio.
+
+        Args:
+            X (np.ndarray): The numerator dataset.
+            Y (np.ndarray): The denominator dataset.
+        """
+        K_xx = self._compute_kernel_matrix(X, X)
+        K_yy = self._compute_kernel_matrix(Y, Y)
+        K_xy = self._compute_kernel_matrix(X, Y)
+
+        n = X.shape[0]
+        m = Y.shape[0]
+
+        # Initialize importance weights
+        w = np.ones(n)
+
+        for _ in range(self.num_iterations):
+            K_xw = np.dot(K_xx, w)
+            A = np.dot(K_xy.T, K_xw)
+            B = np.dot(K_xx.T, K_xw) + self.regularization * np.eye(n)
+            w_new = np.linalg.solve(B, A)
+            w = w_new / np.sum(w_new)
+
+        self.weights = w
+
+    def predict(self, Y):
+        """
+        Predicts the relative density ratio for new samples.
+
+        Args:
+            Y (np.ndarray): The input dataset.
+
+        Returns:
+            np.ndarray: The relative density ratios for the input samples.
+        """
+        K_yx = self._compute_kernel_matrix(Y, X)
+        density_ratios = (1 / X.shape[0]) * np.dot(K_yx, self.weights)
+
+        if self.reference_density is not None:
+            density_ratios /= self.reference_density(Y)
+
+        return density_ratios
+
+    def _compute_kernel_matrix(self, X1, X2):
+        """
+        Computes the Gaussian kernel matrix.
+
+        Args:
+            X1 (np.ndarray): The first dataset.
+            X2 (np.ndarray): The second dataset.
+
+        Returns:
+            np.ndarray: The kernel matrix.
+        """
+        pairwise_distances = np.sum((X1[:, np.newaxis] - X2) ** 2, axis=-1)
+        kernel_matrix = np.exp(-pairwise_distances /
+                               (2 * self.kernel_bandwidth ** 2))
+        return kernel_matrix
+
+
+# Example usage
+X = np.random.rand(100, 2)  # Numerator dataset
+Y = np.random.rand(100, 2)  # Denominator dataset
+
+
+def reference_density(Y):
+    # Define the reference density function
+    return np.ones(len(Y))  # Example: Uniform reference density
+
+
+# Create and fit the RuLSIF model
+model = RuLSIF(kernel_bandwidth=0.5, regularization=0.1,
+               num_iterations=100, reference_density=reference_density)
+model.fit(X, Y)
+
+# Predict relative density ratios for new samples
+Y_new = np.random.rand(50, 2)
+density_ratios = model.predict(Y_new)
+
+print("Relative Density Ratios:", density_ratios)
+
+
+"""
+In this implementation, the symmetrized_pe_divergence function computes the symmetrized PE divergence between two datasets. It estimates the mean and variance of the datasets using the norm.fit function from SciPy's stats module and computes the symmetrized PE divergence based on the estimated parameters.
+
+To demonstrate the change-point detection, an artificial time-series signal with three segments is generated, each having a different variance. The change-point locations are defined, and the symmetrized PE divergence is calculated for each potential change-point. The change-point with the maximum divergence is considered as the detected change-point.
+
+Please note that this is a simplified example, and you may need to adapt the code based on your specific requirements and datasets.
+"""
+
+
+
+
+
+
+def symmetrized_pe_divergence(X, Y):
+    """
+    Computes the symmetrized PE divergence between two datasets.
+
+    Args:
+        X (np.ndarray): The first dataset.
+        Y (np.ndarray): The second dataset.
+
+    Returns:
+        float: The symmetrized PE divergence.
+
+    Raises:
+        ValueError: If the input datasets have different lengths.
+    """
+    if len(X) != len(Y):
+        raise ValueError("Input datasets must have the same length")
+
+    n = len(X)
+
+    # Estimate the mean and variance of X and Y
+    mean_X, var_X = norm.fit(X)
+    mean_Y, var_Y = norm.fit(Y)
+
+    # Compute the symmetrized PE divergence
+    pe_divergence_XY = (var_X + (mean_X - mean_Y)**2) / (2 * var_Y)
+    pe_divergence_YX = (var_Y + (mean_Y - mean_X)**2) / (2 * var_X)
+    symmetrized_pe_divergence = pe_divergence_XY + pe_divergence_YX
+
+    return symmetrized_pe_divergence
+
+
+# Generate an artificial time-series signal with three segments
+segment_length = 200
+signal = np.concatenate([
+    np.random.normal(0, 2, segment_length),
+    np.random.normal(0, 1, segment_length),
+    np.random.normal(0, 2, segment_length)
+])
+
+# Define the change-point locations
+change_points = [segment_length, 2 * segment_length]
+
+# Perform change-point detection using symmetrized PE divergence
+detection_results = []
+for i in range(len(signal) - segment_length):
+    segment1 = signal[:i+segment_length]
+    segment2 = signal[i+segment_length:]
+    divergence = symmetrized_pe_divergence(segment1, segment2)
+    detection_results.append(divergence)
+
+# Find the change-point with the maximum divergence
+change_point = np.argmax(detection_results)
+change_point += segment_length
+
+print("Change Point:", change_point)
