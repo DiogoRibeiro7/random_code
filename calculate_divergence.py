@@ -1,3 +1,10 @@
+"""
+Author(s): Song Liu, Makoto Yamada, Nigel Collier, Masashi Sugiyama
+Title: Change-Point Detection in Time-Series Data by Relative Density-Ratio Estimation
+Journal: Neural Networks
+Year: 2013
+"""
+
 from scipy.stats import norm
 import numpy as np
 
