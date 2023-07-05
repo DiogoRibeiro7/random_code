@@ -99,3 +99,78 @@ X = np.random.rand(100, 2)
 Y = np.random.rand(100, 2)
 weights = kliep(X, Y)
 print("Weights:", weights)
+
+
+class DensityRatioModel:
+    def __init__(self, kernel_bandwidth=1.0):
+        self.kernel_bandwidth = kernel_bandwidth
+
+    def fit(self, X1, X2):
+        """
+        Fits the density-ratio model using kernel density estimation.
+
+        Args:
+            X1 (np.ndarray): The numerator dataset.
+            X2 (np.ndarray): The denominator dataset.
+        """
+        self.X1 = X1
+        self.X2 = X2
+
+    def predict(self, X):
+        """
+        Predicts the density ratio for new samples.
+
+        Args:
+            X (np.ndarray): The input dataset.
+
+        Returns:
+            np.ndarray: The density ratios for the input samples.
+        """
+        # Compute the numerator and denominator densities using kernel density estimation
+        numerator_densities = self._kernel_density_estimate(X, self.X1)
+        denominator_densities = self._kernel_density_estimate(X, self.X2)
+
+        # Compute the density ratios
+        density_ratios = numerator_densities / denominator_densities
+
+        return density_ratios
+
+    def _kernel_density_estimate(self, X, data):
+        """
+        Performs kernel density estimation.
+
+        Args:
+            X (np.ndarray): The input dataset.
+            data (np.ndarray): The training dataset.
+
+        Returns:
+            np.ndarray: The estimated density values for the input samples.
+        """
+        n = len(data)
+        d = X.shape[1]
+        kernel_bandwidth = self.kernel_bandwidth
+
+        # Compute the Gaussian kernel matrix
+        K = np.exp(-np.sum((X[:, None] - data) ** 2,
+                   axis=-1) / (2 * kernel_bandwidth ** 2))
+
+        # Compute the density estimates
+        density_estimates = np.sum(
+            K, axis=1) / (n * (2 * np.pi * kernel_bandwidth ** 2) ** (d / 2))
+
+        return density_estimates
+
+
+# Example usage
+X1 = np.random.rand(100, 2)  # Numerator dataset
+X2 = np.random.rand(100, 2)  # Denominator dataset
+
+# Create and fit the density-ratio model
+model = DensityRatioModel(kernel_bandwidth=0.5)
+model.fit(X1, X2)
+
+# Predict density ratios for new samples
+X_new = np.random.rand(50, 2)
+density_ratios = model.predict(X_new)
+
+print("Density Ratios:", density_ratios)
