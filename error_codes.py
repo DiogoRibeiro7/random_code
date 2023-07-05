@@ -27,6 +27,19 @@ class CustomAttributeError(AttributeError):
         self.message = f"Attribute '{attribute_name}' does not exist for object '{object_name}'"
         super().__init__(self.message)
 
+class CustomIndexError(IndexError):
+    def __init__(self, index):
+        self.index = index
+        self.message = f"Index '{index}' is out of range"
+        super().__init__(self.message)
+
+class CustomTypeError(TypeError):
+    def __init__(self, expected_type, actual_type):
+        self.expected_type = expected_type
+        self.actual_type = actual_type
+        self.message = f"Invalid type. Expected type: {expected_type}, Actual type: {actual_type}"
+        super().__init__(self.message)
+        
 
 
 
