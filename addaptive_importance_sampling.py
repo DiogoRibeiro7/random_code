@@ -423,3 +423,235 @@ samples = deterministic_mixture_population_monte_carlo(target_distribution, prop
 # Print the estimated mean
 estimated_mean = np.mean(samples)
 print("Estimated mean:", estimated_mean)
+
+
+from typing import Callable, List, Tuple
+import numpy as np
+
+def gradient_adaptive_population_importance_sampling(
+    target_distribution: Callable[[np.ndarray], float],
+    proposal_distributions: List[Tuple[Callable[[np.ndarray], float], np.ndarray]],
+    num_samples: int,
+    num_iterations: int,
+    step_size: float = 0.1,
+    repulsion_strength: float = 0.1
+) -> List[np.ndarray]:
+    """
+    Performs Gradient Adaptive Population Importance Sampling (GAPIS) to generate samples from the target distribution.
+
+    GAPIS adapts N proposals by adjusting the location and scale parameters using the gradient ascent of the target
+    and the Hessian of the target, respectively. An advanced implementation adds repulsive interaction among proposals
+    to promote cooperative exploration of the target.
+
+    Args:
+        target_distribution: The target distribution to generate samples from.
+        proposal_distributions: A list of tuples, where each tuple contains a proposal distribution
+                                and its initial location parameters.
+        num_samples: The total number of samples to generate.
+        num_iterations: The number of iterations to perform.
+        step_size: The step size for the gradient ascent and Hessian update.
+        repulsion_strength: The strength of the repulsive interaction among proposals.
+
+    Returns:
+        A list of samples generated using GAPIS.
+    """
+    # Check if the number of samples and iterations are valid
+    if num_samples <= 0 or num_iterations <= 0:
+        raise ValueError("Number of samples and iterations must be greater than zero.")
+
+    num_proposals = len(proposal_distributions)
+    samples = []
+
+    for _ in range(num_iterations):
+        # Generate K samples from each proposal distribution
+        K = int(num_samples / (num_iterations * num_proposals))
+        for proposal, location in proposal_distributions:
+            proposal_samples = np.random.randn(K, len(location)) * location
+            proposal_weights = target_distribution(proposal_samples) / proposal(proposal_samples)
+            proposal_weights /= np.sum(proposal_weights)
+            samples.extend(proposal_samples)
+
+        # Update the location and scale parameters of the proposals
+        for i in range(num_proposals):
+            proposal, location = proposal_distributions[i]
+
+            # Gradient ascent of the target for location update
+            gradient = compute_gradient(target_distribution, location)
+            location += step_size * gradient
+
+            # Hessian update for scale parameter
+            hessian = compute_hessian(target_distribution, location)
+            scale = np.linalg.inv(hessian)
+
+            proposal_distributions[i] = (proposal, location, scale)
+
+        # Apply repulsion among proposals
+        for i in range(num_proposals):
+            for j in range(num_proposals):
+                if i != j:
+                    repulsion_direction = proposal_distributions[i][1] - proposal_distributions[j][1]
+                    repulsion_norm = np.linalg.norm(repulsion_direction)
+                    repulsion_force = repulsion_strength / repulsion_norm**3 if repulsion_norm > 0 else 0
+                    proposal_distributions[i][1] += repulsion_force * repulsion_direction
+
+    return samples
+
+
+def compute_gradient(func: Callable[[np.ndarray], float], x: np.ndarray) -> np.ndarray:
+    """
+    Computes the gradient of a scalar-valued function at a given point using central differences.
+
+    Args:
+        func: The function to compute the gradient of.
+        x: The point at which to compute the gradient.
+
+    Returns:
+        The gradient of the function at the given point.
+    """
+    epsilon = 1e-6
+    gradient = np.zeros_like(x)
+
+    for i in range(len(x)):
+        delta = np.zeros_like(x)
+        delta[i] = epsilon
+
+        gradient[i] = (func(x + delta) - func(x - delta)) / (2 * epsilon)
+
+    return gradient
+
+
+def compute_hessian(func: Callable[[np.ndarray], float], x: np.ndarray) -> np.ndarray:
+    """
+    Computes the Hessian matrix of a scalar-valued function at a given point using central differences.
+
+    Args:
+        func: The function to compute the Hessian matrix of.
+        x: The point at which to compute the Hessian matrix.
+
+    Returns:
+        The Hessian matrix of the function at the given point.
+    """
+    epsilon = 1e-6
+    n = len(x)
+    hessian = np.zeros((n, n))
+
+    for i in range(n):
+        for j in range(n):
+            delta_i = np.zeros_like(x)
+            delta_j = np.zeros_like(x)
+            delta_i[i] = epsilon
+            delta_j[j] = epsilon
+
+            hessian[i, j] = (func(x + delta_i + delta_j) - func(x + delta_i - delta_j) -
+                             func(x - delta_i + delta_j) + func(x - delta_i - delta_j)) / (4 * epsilon**2)
+
+    return hessian
+
+
+# Example usage
+def target_distribution(x: np.ndarray) -> float:
+    """
+    Example target distribution (unnormalized).
+
+    Args:
+        x: The input value.
+
+    Returns:
+        The unnormalized probability density function of the target distribution.
+    """
+    return np.exp(-np.sum(x**2))
+
+
+def proposal_distribution_1(x: np.ndarray) -> float:
+    """
+    Example proposal distribution 1.
+
+    Args:
+        x: The input value.
+
+    Returns:
+        The probability density function of proposal distribution 1.
+    """
+    return np.exp(-np.sum((x - 1)**2) / 2) / (2 * np.pi)
+
+
+def proposal_distribution_2(x: np.ndarray) -> float:
+    """
+    Example proposal distribution 2.
+
+    Args:
+        x: The input value.
+
+    Returns:
+        The probability density function of proposal distribution 2.
+    """
+    return np.exp(-np.sum((x + 1)**2) / 2) / (2 * np.pi)
+
+
+proposal_distributions = [
+    (proposal_distribution_1, np.array([1, 1])),
+    (proposal_distribution_2, np.array([-1, -1]))
+]
+
+num_samples = 1000
+num_iterations = 10
+
+samples = gradient_adaptive_population_importance_sampling(
+    target_distribution, proposal_distributions, num_samples, num_iterations)
+
+# Print the estimated mean
+estimated_mean = np.mean(samples, axis=0)
+print("Estimated mean:", estimated_mean)
+
+
+
+import numpy as np
+
+def streaming_importance_sampling(target_distribution, proposal_distribution, num_samples):
+    """
+    Performs Streaming Importance Sampling to estimate properties of a target distribution.
+
+    Args:
+        target_distribution: A function that returns the unnormalized probability density of the target distribution.
+        proposal_distribution: A function that returns the probability density of the proposal distribution.
+        num_samples: The number of samples to use for the estimation.
+
+    Returns:
+        The estimated mean and variance of the target distribution.
+    """
+    # Initialize variables
+    weighted_samples = []
+    weights = []
+
+    # Generate samples and calculate weights
+    for _ in range(num_samples):
+        sample = proposal_distribution()
+        weight = target_distribution(sample) / proposal_distribution(sample)
+        weighted_samples.append(sample * weight)
+        weights.append(weight)
+
+    # Normalize weights
+    weights = np.array(weights) / np.sum(weights)
+
+    # Estimate mean and variance
+    estimated_mean = np.sum(weighted_samples, axis=0) / np.sum(weights)
+    estimated_variance = np.sum(weights * (np.array(weighted_samples) - estimated_mean) ** 2, axis=0)
+
+    return estimated_mean, estimated_variance
+
+
+# Example usage
+def target_distribution(x):
+    """Example target distribution (unnormalized)."""
+    return np.exp(-x ** 2)
+
+def proposal_distribution():
+    """Example proposal distribution."""
+    return np.random.normal(0, 1)
+
+num_samples = 1000
+estimated_mean, estimated_variance = streaming_importance_sampling(target_distribution, proposal_distribution, num_samples)
+
+print("Estimated mean:", estimated_mean)
+print("Estimated variance:", estimated_variance)
+
