@@ -655,3 +655,62 @@ estimated_mean, estimated_variance = streaming_importance_sampling(target_distri
 print("Estimated mean:", estimated_mean)
 print("Estimated variance:", estimated_variance)
 
+
+import numpy as np
+
+def gaussian_particle_filter(initial_state, num_particles, transition_model, measurement_model, observations):
+    """
+    Performs Gaussian Particle Filtering for state estimation in a dynamic system.
+
+    Args:
+        initial_state: The initial state of the system.
+        num_particles: The number of particles to use.
+        transition_model: A function that models the state transition.
+        measurement_model: A function that models the measurement process.
+        observations: The sequence of measurements.
+
+    Returns:
+        The estimated sequence of states.
+    """
+    num_timesteps = len(observations)
+    state_dim = initial_state.shape[0]
+    state_particles = np.zeros((num_timesteps, num_particles, state_dim))
+
+    # Initialize particles at the initial state
+    state_particles[0] = np.random.multivariate_normal(initial_state, np.eye(state_dim), size=num_particles)
+
+    for t in range(1, num_timesteps):
+        # Resampling step
+        weights = np.zeros(num_particles)
+        for i in range(num_particles):
+            state_particles[t, i] = transition_model(state_particles[t-1, i])
+            weights[i] = measurement_model(observations[t], state_particles[t, i])
+
+        # Normalize weights
+        weights /= np.sum(weights)
+
+        # Resample particles
+        resampled_indices = np.random.choice(np.arange(num_particles), size=num_particles, replace=True, p=weights)
+        state_particles[t] = state_particles[t, resampled_indices]
+
+    return state_particles
+
+# Example usage
+def transition_model(state):
+    """Example state transition model."""
+    return np.random.multivariate_normal(state, np.eye(state.shape[0]))
+
+def measurement_model(observation, state):
+    """Example measurement model."""
+    return np.random.normal(state, 1)
+
+initial_state = np.array([0, 0])
+num_particles = 100
+observations = [1, 2, 3, 4]
+
+estimated_states = gaussian_particle_filter(initial_state, num_particles, transition_model, measurement_model, observations)
+
+print("Estimated states:")
+for t in range(len(observations)):
+    print(f"Time step {t+1}: {estimated_states[t]}")
+
