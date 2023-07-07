@@ -1,10 +1,12 @@
+from typing import Callable, Tuple
 import numpy as np
 from typing import Callable
 
-def simulated_annealing(objective: Callable[[float], float], 
-                        initial_state: float, 
-                        initial_temperature: float, 
-                        cooling_rate: float, 
+
+def simulated_annealing(objective: Callable[[float], float],
+                        initial_state: float,
+                        initial_temperature: float,
+                        cooling_rate: float,
                         iterations: int) -> Tuple[float, float]:
     """
     Performs the Simulated Annealing algorithm for a given objective function.
@@ -21,7 +23,7 @@ def simulated_annealing(objective: Callable[[float], float],
     :type iterations: int
     :return: The final state and its objective value.
     :rtype: Tuple[float, float]
-    
+
     Example Usage:
     ----------------
     objective = lambda x: -x**2 + x + 10  # Simple parabolic function with maximum at x=0.5
@@ -42,8 +44,9 @@ def simulated_annealing(objective: Callable[[float], float],
         if objective(proposed_state) > objective(current_state):
             current_state = proposed_state
         else:
-            acceptance_probability = np.exp((objective(proposed_state) - objective(current_state)) / current_temperature)
-            
+            acceptance_probability = np.exp(
+                (objective(proposed_state) - objective(current_state)) / current_temperature)
+
             if np.random.rand() < acceptance_probability:
                 current_state = proposed_state
 
@@ -52,14 +55,10 @@ def simulated_annealing(objective: Callable[[float], float],
     return current_state, objective(current_state)
 
 
-
-import numpy as np
-from typing import Callable
-
-def fast_simulated_annealing(objective: Callable[[float], float], 
-                             initial_state: float, 
-                             initial_temperature: float, 
-                             cooling_rate: float, 
+def fast_simulated_annealing(objective: Callable[[float], float],
+                             initial_state: float,
+                             initial_temperature: float,
+                             cooling_rate: float,
                              iterations: int) -> Tuple[float, float]:
     """
     Performs the Fast Simulated Annealing algorithm for a given objective function.
@@ -76,7 +75,7 @@ def fast_simulated_annealing(objective: Callable[[float], float],
     :type iterations: int
     :return: The final state and its objective value.
     :rtype: Tuple[float, float]
-    
+
     Example Usage:
     ----------------
     objective = lambda x: -x**2 + x + 10  # Simple parabolic function with maximum at x=0.5
@@ -98,7 +97,8 @@ def fast_simulated_annealing(objective: Callable[[float], float],
         if delta > 0:
             current_state = proposed_state
         else:
-            acceptance_probability = np.exp(delta / (current_temperature / np.log(i+2)))
+            acceptance_probability = np.exp(
+                delta / (current_temperature / np.log(i+2)))
             if np.random.rand() < acceptance_probability:
                 current_state = proposed_state
 
@@ -107,13 +107,10 @@ def fast_simulated_annealing(objective: Callable[[float], float],
     return current_state, objective(current_state)
 
 
-import numpy as np
-from typing import Callable, Tuple
-
-def simulated_quenching(objective: Callable[[float], float], 
-                        initial_state: float, 
-                        initial_temperature: float, 
-                        cooling_rate: float, 
+def simulated_quenching(objective: Callable[[float], float],
+                        initial_state: float,
+                        initial_temperature: float,
+                        cooling_rate: float,
                         iterations: int) -> Tuple[float, float]:
     """
     Performs the Simulated Quenching algorithm for a given objective function.
@@ -130,7 +127,7 @@ def simulated_quenching(objective: Callable[[float], float],
     :type iterations: int
     :return: The final state and its objective value.
     :rtype: Tuple[float, float]
-    
+
     Example Usage:
     ----------------
     objective = lambda x: -x**2 + x + 10  # Simple parabolic function with maximum at x=0.5
@@ -151,8 +148,9 @@ def simulated_quenching(objective: Callable[[float], float],
         if objective(proposed_state) > objective(current_state):
             current_state = proposed_state
         else:
-            acceptance_probability = np.exp((objective(proposed_state) - objective(current_state)) / current_temperature)
-            
+            acceptance_probability = np.exp(
+                (objective(proposed_state) - objective(current_state)) / current_temperature)
+
             if np.random.rand() < acceptance_probability:
                 current_state = proposed_state
 
@@ -161,13 +159,10 @@ def simulated_quenching(objective: Callable[[float], float],
     return current_state, objective(current_state)
 
 
-import numpy as np
-from typing import Callable, Tuple
-
-def very_fast_simulated_reannealing(objective: Callable[[float], float], 
-                                    initial_state: float, 
-                                    initial_temperature: float, 
-                                    cooling_rate: float, 
+def very_fast_simulated_reannealing(objective: Callable[[float], float],
+                                    initial_state: float,
+                                    initial_temperature: float,
+                                    cooling_rate: float,
                                     iterations: int) -> Tuple[float, float]:
     """
     Performs the Very Fast Simulated Reannealing algorithm for a given objective function.
@@ -184,7 +179,7 @@ def very_fast_simulated_reannealing(objective: Callable[[float], float],
     :type iterations: int
     :return: The final state and its objective value.
     :rtype: Tuple[float, float]
-    
+
     Example Usage:
     ----------------
     objective = lambda x: -x**2 + x + 10  # Simple parabolic function with maximum at x=0.5
@@ -212,7 +207,8 @@ def very_fast_simulated_reannealing(objective: Callable[[float], float],
                 best_state = proposed_state
                 current_temperature /= cooling_rate  # slow down cooling
         else:
-            acceptance_probability = np.exp(delta / (current_temperature / np.log(i+2)))
+            acceptance_probability = np.exp(
+                delta / (current_temperature / np.log(i+2)))
             if np.random.rand() < acceptance_probability:
                 current_state = proposed_state
 
@@ -220,13 +216,11 @@ def very_fast_simulated_reannealing(objective: Callable[[float], float],
 
     return best_state, best_value
 
-import numpy as np
-from typing import Callable, Tuple
 
-def threshold_accepting(objective: Callable[[float], float], 
-                        initial_state: float, 
-                        threshold: float, 
-                        step_size: float, 
+def threshold_accepting(objective: Callable[[float], float],
+                        initial_state: float,
+                        threshold: float,
+                        step_size: float,
                         iterations: int) -> Tuple[float, float]:
     """
     Performs the Threshold Accepting algorithm for a given objective function.
@@ -243,7 +237,7 @@ def threshold_accepting(objective: Callable[[float], float],
     :type iterations: int
     :return: The final state and its objective value.
     :rtype: Tuple[float, float]
-    
+
     Example Usage:
     ----------------
     objective = lambda x: -x**2 + x + 10  # Simple parabolic function with maximum at x=0.5
@@ -266,3 +260,75 @@ def threshold_accepting(objective: Callable[[float], float],
 
     return current_state, objective(current_state)
 
+
+class AnnealingOptimizer:
+    def __init__(self, objective: Callable[[float], float], initial_state: float, step_size: float):
+        self.objective = objective
+        self.current_state = initial_state
+        self.step_size = step_size
+        self.best_state = initial_state
+        self.best_value = objective(initial_state)
+
+    def _acceptance_probability(self, delta: float, temperature: float) -> float:
+        if delta > 0:
+            return 1.0
+        else:
+            return np.exp(delta / temperature)
+
+    def simulated_annealing(self, initial_temperature: float, cooling_rate: float, iterations: int):
+        temperature = initial_temperature
+        for _ in range(iterations):
+            proposed_state = self.current_state + self.step_size * np.random.normal()
+            delta = self.objective(proposed_state) - \
+                self.objective(self.current_state)
+
+            if self._acceptance_probability(delta, temperature) > np.random.rand():
+                self.current_state = proposed_state
+                if self.objective(self.current_state) > self.best_value:
+                    self.best_value = self.objective(self.current_state)
+                    self.best_state = self.current_state
+
+            temperature *= cooling_rate
+
+        return self.best_state, self.best_value
+
+    def threshold_accepting(self, threshold: float, iterations: int):
+        for _ in range(iterations):
+            proposed_state = self.current_state + \
+                self.step_size * np.random.uniform(-1, 1)
+            delta = self.objective(proposed_state) - \
+                self.objective(self.current_state)
+            if delta > 0 or -delta <= threshold:
+                self.current_state = proposed_state
+
+        return self.current_state, self.objective(self.current_state)
+
+# Example usage:
+
+
+# Simple parabolic function with maximum at x=0.5
+def objective(x): return -x**2 + x + 10
+
+
+initial_state = 0
+step_size = 0.01
+
+optimizer = AnnealingOptimizer(objective, initial_state, step_size)
+
+# Perform Simulated Annealing
+initial_temperature = 10
+cooling_rate = 0.99
+iterations = 10000
+state, value = optimizer.simulated_annealing(
+    initial_temperature, cooling_rate, iterations)
+print(f"Final state (SA): {state}")
+print(f"Objective value (SA): {value}")
+
+# Perform Threshold Accepting
+optimizer = AnnealingOptimizer(
+    objective, initial_state, step_size)  # reset the optimizer
+threshold = 0.1
+iterations = 10000
+state, value = optimizer.threshold_accepting(threshold, iterations)
+print(f"Final state (TA): {state}")
+print(f"Objective value (TA): {value}")
