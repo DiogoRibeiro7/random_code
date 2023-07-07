@@ -219,3 +219,50 @@ def very_fast_simulated_reannealing(objective: Callable[[float], float],
         current_temperature *= cooling_rate  # cooling
 
     return best_state, best_value
+
+import numpy as np
+from typing import Callable, Tuple
+
+def threshold_accepting(objective: Callable[[float], float], 
+                        initial_state: float, 
+                        threshold: float, 
+                        step_size: float, 
+                        iterations: int) -> Tuple[float, float]:
+    """
+    Performs the Threshold Accepting algorithm for a given objective function.
+
+    :param objective: The objective function to optimize.
+    :type objective: Callable[[float], float]
+    :param initial_state: The initial state.
+    :type initial_state: float
+    :param threshold: The threshold for accepting worse solutions.
+    :type threshold: float
+    :param step_size: The step size for generating new candidate solutions.
+    :type step_size: float
+    :param iterations: The number of iterations to perform.
+    :type iterations: int
+    :return: The final state and its objective value.
+    :rtype: Tuple[float, float]
+    
+    Example Usage:
+    ----------------
+    objective = lambda x: -x**2 + x + 10  # Simple parabolic function with maximum at x=0.5
+    initial_state = 0
+    threshold = 0.1
+    step_size = 0.01
+    iterations = 10000
+    state, value = threshold_accepting(objective, initial_state, threshold, step_size, iterations)
+    print(f"Final state: {state}")
+    print(f"Objective value: {value}")
+    """
+    current_state = initial_state
+
+    for _ in range(iterations):
+        proposed_state = current_state + step_size * np.random.uniform(-1, 1)
+
+        delta = objective(proposed_state) - objective(current_state)
+        if delta > 0 or -delta <= threshold:
+            current_state = proposed_state
+
+    return current_state, objective(current_state)
+
