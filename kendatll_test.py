@@ -3,6 +3,23 @@ class KendallTests:
         self.data = data
     
     def kendall_tau(self):
+        """
+        Computes Kendall's tau-b test statistic and p-value for the given data.
+
+        Returns:
+        - test_statistic (float): Kendall's tau-b test statistic.
+        - p_value (float): p-value computed using a normal approximation.
+
+        Example:
+        data = [1, 2, 3, 4, 5]
+        kendall = KendallTests(data)
+        tau, p = kendall.kendall_tau()
+        print(tau)  # Output: 1.0
+        print(p)    # Output: 0.0
+        """
+        if not isinstance(self.data, list) or not all(isinstance(val, (int, float)) for val in self.data):
+            raise TypeError("data must be a list of numeric values.")
+        
         concordant = 0
         discordant = 0
         
@@ -23,6 +40,23 @@ class KendallTests:
         return test_statistic, p_value
     
     def seasonal_kendall(self):
+        """
+        Computes seasonal Kendall's tau-b test statistic and p-value for the given data.
+
+        Returns:
+        - test_statistic (float): Seasonal Kendall's tau-b test statistic.
+        - p_value (float): p-value computed using the seasonal Kendall's tau-b method.
+
+        Example:
+        data = [1, 2, 3, 4, 5]
+        kendall = KendallTests(data)
+        tau, p = kendall.seasonal_kendall()
+        print(tau)  # Output: 1.0
+        print(p)    # Output: 0.0
+        """
+        if not isinstance(self.data, list) or not all(isinstance(val, (int, float)) for val in self.data):
+            raise TypeError("data must be a list of numeric values.")
+        
         concordant = 0
         discordant = 0
         
@@ -44,6 +78,23 @@ class KendallTests:
         return test_statistic, p_value
     
     def regional_kendall(self):
+        """
+        Computes regional Kendall's tau-b test statistic and p-value for the given data.
+
+        Returns:
+        - test_statistic (float): Regional Kendall's tau-b test statistic.
+        - p_value (float): p-value computed using the regional Kendall's tau-b method.
+
+        Example:
+        data = [1, 2, 3, 4, 5]
+        kendall = KendallTests(data)
+        tau, p = kendall.regional_kendall()
+        print(tau)  # Output: 1.0
+        print(p)    # Output: 0.0
+        """
+        if not isinstance(self.data, list) or not all(isinstance(val, (int, float)) for val in self.data):
+            raise TypeError("data must be a list of numeric values.")
+        
         concordant = 0
         discordant = 0
         
@@ -62,6 +113,7 @@ class KendallTests:
         p_value = 2 * min(concordant, discordant) / (n * (n - 1))
         
         return test_statistic, p_value
+
 
 
 # Example data
